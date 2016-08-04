@@ -1,0 +1,8 @@
+name = Accelerant Base Module
+description = Base module to set up some basic features for Accelerant Sites
+core = 7.x
+package = "Accelerant Studios"
+
+drupal_add_js(drupal_get_path('module', 'accelerant_base') . 'includes/js/accelerant_base.js');
+
+scripts[] = includes/js/accelerant_base.js
