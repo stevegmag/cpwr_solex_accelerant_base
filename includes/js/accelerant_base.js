@@ -19,6 +19,13 @@ var delta = 200;
 		if( $('.views-field-field-exposure-conc').length > 0 ) {
 			calcExpConc( $, $('td.views-field-field-exposure-conc') );	
 		}
+		else {			
+			$('.view-filters')
+				.after('<div class="view-content"></div>');
+			
+			$('.view-content')
+				.prepend('<strong class="no-results">No Exposure Events Found</strong>');	
+		}
 		
 	} ); // ready function
 
@@ -60,7 +67,7 @@ function resizeend( $ ) {
 
 //  add new functions here
 function calcExpConc( $, tableCells ) {
-	//console.log('averageExpConc called:: 1');
+	console.log('averageExpConc called:: 1');
 	var totalEvents = tableCells.length;
 	var individualEvents = {};
 	var countIndividualEvents = 0;
@@ -70,7 +77,7 @@ function calcExpConc( $, tableCells ) {
 	var NIOSHLimit = 0.05;
 	var OSHALimit = 0.05;
 	
-	//console.log('averageExpConc totalEvents:: ' + totalEvents);
+	console.log('averageExpConc totalEvents:: ' + totalEvents);
 	
 	//each cell add value to sum var
 	tableCells.each(function() {
@@ -90,24 +97,32 @@ function calcExpConc( $, tableCells ) {
 			individualEvents[$(this).text()] = true;
 		}
 	});
-	if( totalEvents == 0 ) {
-		$('.view-content')
-		.prepend('<strong>No Exposure Events Found</strong>');	
-	} else {
+	
+	if( totalEvents > 0 ) {
 		$('.view-content')
 			.prepend('<strong>Std Deviation Exposure Conc :: </strong>'
-			 + stdDevCells + '<br />')
+			 + stdDevCells + ' mg/m3<br />')
 			.prepend('<strong>Max Exposure Conc :: </strong>'
-			 + maxCell + '<br />')
+			 + maxCell + ' mg/m3<br />')
 			.prepend('<strong>Min Exposure Conc :: </strong>'
-			 + minCell + '<br />')
+			 + minCell + ' mg/m3<br />')
 			.prepend('<strong>Mean/Average Exposure Conc :: </strong>'
-			 + meanCells + '<br />')
-			 .prepend('<strong>Total Unique Exposure Events Found :: </strong>'
+			 + meanCells + ' mg/m3<br />')
+			 .prepend('<strong>Total Exposure Sources :: </strong>'
 			 + countIndividualEvents + '<br />')
-			 .prepend('<strong>Total Exposure Events Found :: </strong>'
-			 + totalEvents + '<br />');
-	}	
+			 .prepend('<strong>Total Exposure Measurements :: </strong>'
+			 + totalEvents + '<br />')
+			 .after('<div class="exposure-probability"></div>');
+		if( totalEvents < 6 ) {
+			$('.exposure-probability')
+				.prepend('<p><strong>There was insufficient data resulting from this search to provide a reliable estimate of exposure risks.</strong></p><p> Sample size is a complex topic and exposures can be highly variable.  Estimates of exposure become increasingly less reliable as the number of samples decrease.  This is especially true if the sample are limited to a single source or job or to less than one or two workers.');	
+		
+		} else {
+			
+			$('.exposure-probability')
+				.text('Do the probability calculations and add here.'); 
+		}	 
+	} //if	
 }	
 
 function mean(numbers) {
