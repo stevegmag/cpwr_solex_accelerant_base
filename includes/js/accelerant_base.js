@@ -7,6 +7,9 @@
 var rtime;
 var timeout = false;
 var delta = 200;
+var NIOSH_REL = 0.025;
+var OSHA_PEL = 0.025;
+var ACGIH_TLV = 0.025;
 var probabilityPercentage = 27;
 
 /******************************************************  Ready & Resize */
@@ -98,8 +101,6 @@ function calcExpConc( $, tableCells ) {
 	var numbers = [];
 	var minCell = null;
 	var maxCell = null;
-	var NIOSHLimit = 0.05;
-	var OSHALimit = 0.05;
 	
 	console.log('averageExpConc totalEvents:: ' + totalEvents);
 	
@@ -112,8 +113,17 @@ function calcExpConc( $, tableCells ) {
 		maxCell = (!(maxCell) || (currVal > maxCell))?currVal:maxCell;
 	});
 	
-	var meanCells = mean(numbers).toFixed(2);
-	var stdDevCells = stdDeviation(numbers, meanCells);
+	var meanCells = mean( numbers ).toFixed(2);
+	var stdDevCells = stdDeviation( numbers, meanCells );
+	
+	
+	var LN = naturalLogs( numbers );
+	var mu = mean( LN ).toFixed(2);
+	var sigma = stdDeviation( LN, mu );
+	var OEL_LN = Math.log( NIOSH_REL );
+	var ratio = ((OEL_LN-mu)/sigma).toFixed(2);
+	
+	probabilityPercentage = (ratio*100).toFixed(2);
 	
 	$('td.views-field-title').each(function(){
 		if (!individualEvents[$(this).text()]) {
@@ -124,6 +134,14 @@ function calcExpConc( $, tableCells ) {
 	
 	if( totalEvents > 0 ) {
 		$('.view-content')
+			.prepend('<strong>ratio :: </strong>'
+			 + ratio + '<br />')
+			.prepend('<strong>OEL_LN :: </strong>'
+			 + OEL_LN + '<br />')
+			.prepend('<strong>sigma :: </strong>'
+			 + sigma + '<br />')
+			.prepend('<strong>mu :: </strong>'
+			 + mu + '<br />')
 			.prepend('<strong>Std Deviation Exposure Conc :: </strong>'
 			 + stdDevCells + ' mg/m3<br />')
 			.prepend('<strong>Max Exposure Conc :: </strong>'
@@ -206,7 +224,7 @@ function range( numbers ) {
     return [numbers[0], numbers[numbers.length - 1]];
 }
 
-function stdDeviation( numbers, meanCel ) {
+function stdDeviation( numbers, meanCells ) {
 	var diff = numbers.map(function(number) {
 		var diff = number - meanCells;
 		return diff;
@@ -219,20 +237,20 @@ function stdDeviation( numbers, meanCel ) {
 	});
 	
 	var avgSquareDiff = mean(squareDiffs);
-	var stdDeviation = Math.sqrt(avgSquareDiff).toFixed(2);
+	var stdDeviation = Math.sqrt(avgSquareDiff); //.toFixed(2)
 	
 	return stdDeviation;
 } 
 
-function naturalLog( numbers ) {
-
-}
-
-function normalDensityZx( x, Mean, StdDev ) {
-	var a = x - Mean;
-	normalDensityZx = Math.exp( -( a * a ) / ( 2 * StdDev * StdDev ) ) / ( Math.sqrt( 2 * Math.PI ) * StdDev );
+function naturalLogs( numbers ) {
+	var natLogs = [];
 	
-	return normalDensityZx;
+	for( i=0; i<numbers.length; i++ ) {
+		natLogs.push(Math.log( numbers[i] ));
+	
+		console.log('natLog'+i+' :: '+numbers[i]+' :: '+natLogs[i]);
+	}
+	
+	return natLogs;
 }
-
 		
