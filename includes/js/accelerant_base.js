@@ -7,6 +7,7 @@
 var rtime;
 var timeout = false;
 var delta = 200;
+var probabilityPercentage = 27;
 
 /******************************************************  Ready & Resize */
 
@@ -27,6 +28,10 @@ var delta = 200;
 				.prepend('<strong class="no-results">No Exposure Events Found</strong>');	
 		}
 		
+		if( $('#block-thermometer-thermometer').length > 0 ) {
+			initThemometer($, probabilityPercentage);
+		}
+			
 	} ); // ready function
 
 	$( window ).resize(function( $ ) {
@@ -66,6 +71,25 @@ function resizeend( $ ) {
 } //resizeend
 
 //  add new functions here
+function initThemometer( $, probabilityPercentage ) {
+
+	$('#block-thermometer-thermometer h2').html("Probability of exceeding the  proposed OSHA PEL & NIOSH REL ("+probabilityPercentage+"%)");
+	probVal = probabilityPercentage+'%';
+	
+	console.log('averagprobVal:: '+ probVal);
+	$('#thermometer .goal .amount').text('100%');
+	$('#thermometer .progress .amount').text(probVal);
+	
+	
+      $('#thermometer .progress').animate({
+        "height": probVal
+      }, 1200, function(){
+        $(this).find(".amount").fadeIn(500);
+      });
+
+} //initThemometer
+
+
 function calcExpConc( $, tableCells ) {
 	console.log('averageExpConc called:: 1');
 	var totalEvents = tableCells.length;
@@ -103,11 +127,11 @@ function calcExpConc( $, tableCells ) {
 			.prepend('<strong>Std Deviation Exposure Conc :: </strong>'
 			 + stdDevCells + ' mg/m3<br />')
 			.prepend('<strong>Max Exposure Conc :: </strong>'
-			 + maxCell + ' mg/m3<br />')
+			 + maxCell + ' mg/m<sup>3</sup><br />')
 			.prepend('<strong>Min Exposure Conc :: </strong>'
-			 + minCell + ' mg/m3<br />')
+			 + minCell + ' mg/m<sup>3</sup><br />')
 			.prepend('<strong>Mean/Average Exposure Conc :: </strong>'
-			 + meanCells + ' mg/m3<br />')
+			 + meanCells + ' mg/m<sup>3</sup><br />')
 			 .prepend('<strong>Total Exposure Sources :: </strong>'
 			 + countIndividualEvents + '<br />')
 			 .prepend('<strong>Total Exposure Measurements :: </strong>'
@@ -116,16 +140,18 @@ function calcExpConc( $, tableCells ) {
 		if( totalEvents < 6 ) {
 			$('.exposure-probability')
 				.prepend('<p><strong>There was insufficient data resulting from this search to provide a reliable estimate of exposure risks.</strong></p><p> Sample size is a complex topic and exposures can be highly variable.  Estimates of exposure become increasingly less reliable as the number of samples decrease.  This is especially true if the sample are limited to a single source or job or to less than one or two workers.');	
+				$('#block-thermometer-thermometer').hide();
 		
 		} else {
+			//calc probability		
 			
 			$('.exposure-probability')
-				.text('Do the probability calculations and add here.'); 
-		}	 
+				.append($('#block-thermometer-thermometer')); 
+		} // >=6 events 
 	} //if	
 }	
 
-function mean(numbers) {
+function mean( numbers ) {
     // mean of [3, 5, 4, 4, 1, 1, 2, 3] is 2.875
     console.log('Numbers :: '+numbers);
     var total = 0;
@@ -134,7 +160,8 @@ function mean(numbers) {
     }
     return total / numbers.length;
 }
-function median(numbers) {
+
+function median( numbers ) {
     // median of [3, 5, 4, 4, 1, 1, 2, 3] = 3
     var median = 0,
         numsLen = numbers.length;
@@ -148,7 +175,8 @@ function median(numbers) {
     }
     return median;
 }
-function mode(numbers) {
+
+function mode( numbers ) {
     // as result can be bimodal or multimodal,
     // the returned result is provided as an array
     // mode of [3, 5, 4, 4, 1, 1, 2, 3] = [1, 3, 4]
@@ -171,12 +199,14 @@ function mode(numbers) {
     }
     return modes;
 }
-function range(numbers) {
+
+function range( numbers ) {
     // range of [3, 5, 4, 4, 1, 1, 2, 3] is [1, 5]
     numbers.sort();
     return [numbers[0], numbers[numbers.length - 1]];
 }
-function stdDeviation(numbers, meanCells) {
+
+function stdDeviation( numbers, meanCel ) {
 	var diff = numbers.map(function(number) {
 		var diff = number - meanCells;
 		return diff;
@@ -193,4 +223,16 @@ function stdDeviation(numbers, meanCells) {
 	
 	return stdDeviation;
 } 
+
+function naturalLog( numbers ) {
+
+}
+
+function normalDensityZx( x, Mean, StdDev ) {
+	var a = x - Mean;
+	normalDensityZx = Math.exp( -( a * a ) / ( 2 * StdDev * StdDev ) ) / ( Math.sqrt( 2 * Math.PI ) * StdDev );
+	
+	return normalDensityZx;
+}
+
 		
